@@ -1,9 +1,9 @@
 var debug = require('debug')('uttt:game');
-var X = createBoard.X = 'x';
-var O = createBoard.O = 'o';
+var X = exports.X = Grid.X = 'x';
+var O = exports.O = Grid.O = 'o';
 
-module.exports = createBoard;
-createBoard.Grid = Grid;
+exports.createBoard = createBoard;
+exports.Grid = Grid;
 
 function createBoard() {
 	debug('creating board');
