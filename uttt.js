@@ -1,4 +1,6 @@
 var debug = require('debug')('uttt:game');
+var EventEmitter = require('events');
+var util = require('util');
 var X = exports.X = Grid.X = 'x';
 var O = exports.O = Grid.O = 'o';
 
@@ -9,24 +11,36 @@ function createBoard() {
 	debug('creating board');
 
 	var board = new Grid('board');
+	var update = () => board.valueOf();
 
 	board.A0 = new Grid('A0');
 	board.A1 = new Grid('A1');
 	board.A2 = new Grid('A2');
+	board.A0.on('win', update);
+	board.A1.on('win', update);
+	board.A2.on('win', update);
 
 	board.B0 = new Grid('B0');
 	board.B1 = new Grid('B1');
 	board.B2 = new Grid('B2');
+	board.B0.on('win', update);
+	board.B1.on('win', update);
+	board.B2.on('win', update);
 
 	board.C0 = new Grid('C0');
 	board.C1 = new Grid('C1');
 	board.C2 = new Grid('C2');
+	board.C0.on('win', update);
+	board.C1.on('win', update);
+	board.C2.on('win', update);
 
 	return board;
 }
 
 function Grid(name) {
 	debug('creating grid: ' + JSON.stringify(name));
+
+	EventEmitter.call(this);
 
 	this.name = name;
 
@@ -37,6 +51,8 @@ function Grid(name) {
 		'C': new Array(3)
 	});
 }
+
+util.inherits(Grid, EventEmitter);
 
 Object.defineProperties(Grid.prototype, {
 	'A0': {
@@ -143,6 +159,7 @@ Object.defineProperties(Grid.prototype, {
 Grid.prototype.valueOf = function() {
 	if (this._value) return this._value;
 
+	var win;
 	var xRow = [X, X, X].toString();
 	var oRow = [O, O, O].toString();
 	var keys = Object.keys(this._grid);
@@ -161,7 +178,9 @@ Grid.prototype.valueOf = function() {
 	].filter(possible => possible == xRow || possible == oRow);
 
 	if (complete.length === 1) {
-		setReadOnly(this, '_value', complete[0] == xRow ? X : O);
+		win = complete[0] == xRow ? X : O;
+		setReadOnly(this, '_value', win);
+		this.emit('win', win, this.name);
 	} else if (complete.length > 1) {
 		throw new Error('Grid: unexpected number of wins');
 	}

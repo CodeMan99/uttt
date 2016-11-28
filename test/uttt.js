@@ -29,6 +29,12 @@ test('uttt.Grid', t => {
 	t.ok('C1' in grid, 'lower center');
 	t.ok('C2' in grid, 'lower right');
 
+	grid.on('win', function(winner, name) {
+		t.equal(this, grid, 'event has valid this');
+		t.equal(winner, uttt.X, 'event cross win');
+		t.equal(name, 'test', 'event name');
+	});
+
 	// x |   | o
 	//   | x | o
 	//   |   | x
@@ -76,6 +82,10 @@ test('uttt.createBoard', t => {
 	t.ok('C0' in board.A0, 'lower left of inner grid A0');
 	t.ok('C1' in board.A0, 'lower center of inner grid A0');
 	t.ok('C2' in board.A0, 'lower right of inner grid A0');
+
+	board.once('win', winner => {
+		t.equal(winner, uttt.X, 'win event');
+	});
 
 	// board
 	// x | o |
@@ -164,9 +174,7 @@ test('uttt.createBoard', t => {
 	board.C2.C0 = uttt.O;
 	board.C2.A2 = uttt.X;
 	t.equal(board.C2.toString(), uttt.X, 'C2 cross win');
-	// TODO have grid wins call valueOf method on board
-	//t.equal(board.toString(), uttt.X, 'cross win');
-	t.equal(board.valueOf(), uttt.X, 'cross win');
+	t.equal(board.toString(), uttt.X, 'cross win');
 
 	t.end();
 });
