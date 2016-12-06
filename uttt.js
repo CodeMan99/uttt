@@ -44,12 +44,28 @@ function Grid(name) {
 
 	this.name = name;
 
-	setReadOnly(this, '_value', null);
-	setReadOnly(this, '_grid', {
-		'A': new Array(3),
-		'B': new Array(3),
-		'C': new Array(3)
+	Object.defineProperties(this, {
+		'_grid': {
+			configurable: true,
+			enumerable: false,
+			value: {
+				'A': new Array(3),
+				'B': new Array(3),
+				'C': new Array(3)
+			},
+			writable: false
+		},
+		'_value': {
+			configurable: true,
+			enumerable: false,
+			value: null,
+			writable: false
+		}
 	});
+
+	Object.modifyProperty(this._grid.A, 'length', {writable: false});
+	Object.modifyProperty(this._grid.B, 'length', {writable: false});
+	Object.modifyProperty(this._grid.C, 'length', {writable: false});
 }
 
 util.inherits(Grid, EventEmitter);
@@ -179,7 +195,7 @@ Grid.prototype.valueOf = function() {
 
 	if (complete.length === 1) {
 		win = complete[0] == xRow ? X : O;
-		setReadOnly(this, '_value', win);
+		Object.modifyProperty(this, '_value', {value: win});
 		this.emit('win', win, this.name);
 	} else if (complete.length > 1) {
 		throw new Error('Grid: unexpected number of wins');
@@ -192,11 +208,9 @@ Grid.prototype.toString = function() {
 	return this._value || '';
 };
 
-function setReadOnly(obj, name, value) {
-	Object.defineProperty(obj, name, {
-		configurable: true,
-		enumerable: false,
-		value: value,
-		writable: false
-	});
-}
+Object.modifyProperty = function(obj, name, descriptor) {
+	var original = Object.getOwnPropertyDescriptor(obj, name);
+	var modified = Object.assign({}, original, descriptor);
+
+	return Object.defineProperty(obj, name, modified);
+};
